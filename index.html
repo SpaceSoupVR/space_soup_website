@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>SPACE SOUP — a VR studio</title>
+  <meta name="description" content="Space Soup is a VR studio building worlds from the ground up: our own engine, our own tools, our own physics. Scroll to put the headset on." />
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="/emblem.png" />
+  <link rel="preload" href="/fonts/Unbounded-900.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/fonts/fonts.css" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+</head>
+<body>
+  <canvas id="gl"></canvas>
+  <div id="vr-frame" aria-hidden="true"></div>
+
+  <!-- the countdown: on the first scroll, everything loads behind this before the journey starts -->
+  <div id="loader" aria-live="polite" hidden>
+    <div class="num">5</div>
+  </div>
+
+  <!-- a normal website's navigation: here at the start and again at the end -->
+  <header id="nav">
+    <a class="brand" href="#top"><img src="/emblem.png" alt="" /><span>SPACE SOUP</span></a>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#showcase">Showcase</a>
+      <a class="nav-cta" href="https://discord.gg/REPLACE-WITH-YOUR-INVITE" target="_blank" rel="noopener">Discord</a>
+    </nav>
+  </header>
+
+  <!-- HERO: the flat start of the page -->
+  <div id="hero">
+    <h1 id="title" aria-label="Space Soup">
+      <span class="word"><span class="ch">S</span><span class="ch">P</span><span class="ch">A</span><span class="ch">C</span><span class="ch">E</span></span>
+      <span class="word"><span class="ch">S</span><span class="ch">O</span><span class="ch">U</span><span class="ch">P</span></span>
+    </h1>
+    <p id="tag">A VR studio, cooked from scratch.</p>
+    <div id="scroll-hint"><span>Scroll to put it on</span><i></i></div>
+  </div>
+
+  <!-- the scroll track that drives the journey -->
+  <div id="track"></div>
+
+  <!-- THE NORMAL WEBSITE -->
+  <main id="site">
+
+    <section class="intro" id="top">
+      <p class="eyebrow">Space Soup · VR studio</p>
+      <h1>We build virtual worlds<br />from the ground up.</h1>
+      <p class="lede">Our own engine, our own tools, our own physics. One small studio, every layer of the stack.</p>
+      <div class="intro-actions">
+        <a class="button" href="#showcase">See the showcase</a>
+      </div>
+    </section>
+
+    <section class="block" id="about">
+      <div class="wrap">
+        <p class="eyebrow">About</p>
+        <h2>A small studio.<br />An enormous idea.</h2>
+        <div class="cols">
+          <p>Space Soup builds virtual reality from scratch. No off-the-shelf engine: our runtime is written in Rust on OpenXR, with real physics, scripting, and full-body presence. Every frame is drawn by code we own.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block block--alt" id="showcase">
+      <div class="wrap">
+        <p class="eyebrow">Showcase</p>
+        <h2>Seen from in here</h2>
+        <div class="shots">
+          <figure class="shot shot--a"><div class="shot-art"></div><figcaption>Engine, in motion</figcaption></figure>
+          <figure class="shot shot--b"><div class="shot-art"></div><figcaption>Inside the scene editor</figcaption></figure>
+          <figure class="shot shot--c"><div class="shot-art"></div><figcaption>On the headset</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="block cta" id="cta">
+      <div class="wrap wrap--narrow">
+        <h2>Step inside.</h2>
+        <p class="lede">VR worlds, engine and tools, all built in-house. Come and talk to us.</p>
+        <a class="button" href="https://discord.gg/REPLACE-WITH-YOUR-INVITE" target="_blank" rel="noopener">Join the Discord</a>
+        <a class="again" href="#top" id="again">Watch the journey again</a>
+      </div>
+    </section>
+
+    <footer id="footer">
+      <div class="wrap footer-in">
+        <span class="brand"><img src="/emblem.png" alt="" /><span>SPACE SOUP</span></span>
+        <span>A VR studio · © 2026</span>
+      </div>
+    </footer>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
