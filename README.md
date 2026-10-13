@@ -22,8 +22,10 @@ ends as a normal 2D page again.
    naruto galaxy, a ringed broth giant with a scallion ring and a sesame asteroid belt, a
    dumpling moon, a star-anise cruiser, a soy-sauce rocket, a giant ladle, nori solar
    sails, tofu asteroids, noodle comets, a yolk sun and a pair of giant chopsticks.
-7. **The pot.** A colossal brass stockpot comes up from below. You fall into it and
-   level out just above a simmering lake of ramen broth.
+7. **The pot.** A colossal brass stockpot comes up from below, a column of steam boiling
+   out of it into space and the broth inside spinning as a whirlpool, with a tornado of
+   scallion and chili circling its eye. You fall through the steam and corkscrew down
+   into the vortex, banking as you go, and level out just above the broth as it calms.
 8. **Hovering.** You drift just above the broth, which reflects the brass and the
    nebula and shows noodles and eggs beneath its surface, among noodle nests,
    soft-boiled eggs, chashu, naruto, fish cakes, nori, bean sprouts, corn, mushrooms,
