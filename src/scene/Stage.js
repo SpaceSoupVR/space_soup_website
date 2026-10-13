@@ -244,11 +244,9 @@ export class Stage {
 
   frameWorld(p, dt, t, u = 0) {
     const y = T.camY(p);
-    // the steam column reaches far up into space; below the rim it closes right in
+    // below the pot's rim the steam closes in
     const inside = ramp(-y, 392, 418);
-    this.potFog.density = 0.032 * inside + 0.009 * ramp(-y, 300, 392) * (1 - inside);
-    // the whirlpool rages while we fall toward it, and calms once we are down on the broth
-    this.station.swirl = ramp(p, 0.88, 0.92) * (1 - 0.8 * ramp(p, 0.968, 0.99));
+    this.potFog.density = 0.032 * inside;
     this.station.u.uFog.value = this.potFog.density;
     this.fall.pixelScale = (this.pr * window.innerHeight) / 900;
     this.station.pixelScale = this.fall.pixelScale;
@@ -261,22 +259,14 @@ export class Stage {
     const sx = Math.sin(t * 1.1) * 0.22 * calm + Math.sin(t * 37) * 0.03 * rumble;
     const sy = (Math.sin(t * 1.3) * 0.08 + Math.sin(t * 29) * 0.035 * rumble) * (1 - calm);
     const hover = new THREE.Vector3(sx, y + sy, Math.cos(t * 0.9) * 0.22 * calm + T.walk(p));
-    // the drop into the pot: not straight down, but a spiral, drawn in by the whirlpool, banking as we go
-    const spin = ramp(p, 0.925, 0.976);
-    const R = 11 * Math.pow(1 - spin, 1.4);
-    const th = spin * 2 * Math.PI;
-    hover.x += Math.sin(th) * R;
-    hover.z += Math.cos(th) * R;
-    const spinYaw = (spin > 0 && spin < 1) ? th : 0;
-    const bank = 0.3 * Math.sin(spin * Math.PI);
     const ride = this.station.ride(u, t);
     const inLadle = ride.blend;
     this.camera.up.set(0, 1, 0);
     this.camera.position.lerpVectors(hover, ride.pos, inLadle);
     // never under the soup: hold the lens at least a little above whatever the surface is doing here
     this.camera.position.y = Math.max(this.camera.position.y, this.station.surfaceAt(this.camera.position.x, this.camera.position.z) + 1.1);
-    const yaw = (1.6 * Math.sin(-y * 0.02) + 0.3 * Math.sin(t * 0.5)) * calm * (1 - spin) + spinYaw + ride.yaw;
-    this.camera.rotation.set(lerp(T.camPitch(p), 0, inLadle) + ride.pitch, yaw, Math.sin(t * 0.6) * 0.08 * calm + Math.sin(t * 23) * 0.015 * rumble + ride.roll + bank);
+    const yaw = (1.6 * Math.sin(-y * 0.02) + 0.3 * Math.sin(t * 0.5)) * calm + ride.yaw;
+    this.camera.rotation.set(lerp(T.camPitch(p), 0, inLadle) + ride.pitch, yaw, Math.sin(t * 0.6) * 0.08 * calm + Math.sin(t * 23) * 0.015 * rumble + ride.roll);
     this.camera.fov = T.worldFov(p) + ride.fov;
   }
 

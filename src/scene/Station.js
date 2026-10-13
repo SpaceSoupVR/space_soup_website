@@ -24,15 +24,10 @@ const LAKE_R = BOWL_R - 0.3;
 export const BOIL_C = new THREE.Vector2(0, -19);
 
 /** The broth's surface height; the same function runs in the shader, so things ride the waves. */
-let SWIRL = 0; // the whirlpool's strength, set each frame
 function waveH(x, z, t, boil) {
   let h = 0.1 * Math.sin(x * 0.8 + t * 1.2) * Math.cos(z * 0.65 - t * 1.0)
     + 0.07 * Math.sin((x + z) * 1.6 + t * 2.0)
     + 0.05 * Math.sin(x * 2.9 - z * 2.3 + t * 3.1);
-  if (SWIRL > 0) {
-    const rr = Math.sqrt(x * x + z * z);
-    h -= SWIRL * (3.2 * Math.exp(-rr * rr / 90) + 0.5 * Math.sin(Math.atan2(z, x) * 3 + rr * 0.6 - t * 2.5) * Math.exp(-rr * 0.08));
-  }
   if (boil > 0) {
     const dx = x - BOIL_C.x;
     const dz = z - BOIL_C.y;
@@ -85,15 +80,12 @@ function steamTexture() {
 const WAVE_GLSL = /* glsl */ `
   uniform float uTime;
   uniform float uBoil;
-  uniform float uSwirl;
   uniform vec2 uBoilC;
   float waveH(vec2 p) {
     float t = uTime;
     float h = 0.1 * sin(p.x * 0.8 + t * 1.2) * cos(p.y * 0.65 - t * 1.0)
       + 0.07 * sin((p.x + p.y) * 1.6 + t * 2.0)
       + 0.05 * sin(p.x * 2.9 - p.y * 2.3 + t * 3.1);
-    float rr = length(p);
-    h -= uSwirl * (3.2 * exp(-rr * rr / 90.0) + 0.5 * sin(atan(p.y, p.x) * 3.0 + rr * 0.6 - t * 2.5) * exp(-rr * 0.08));
     vec2 dv = p - uBoilC;
     float d = length(dv);
     h += uBoil * (1.6 * sin(d * 0.8 - t * 5.0) * exp(-d * 0.07) + 0.5 * sin(d * 2.0 - t * 9.0) * exp(-d * 0.14));
@@ -129,16 +121,11 @@ const lakeFrag = /* glsl */ `
     if (r > ${LAKE_R.toFixed(2)}) discard;
     float t = uTime;
     vec2 p = vP;
-    // the whirlpool: everything on the surface is wound round the centre, faster the nearer it is
-    float rr0 = length(p);
-    float wind = uSwirl * (2.6 * exp(-rr0 * 0.05) + t * 0.35 * exp(-rr0 * 0.06));
-    float cw = cos(wind), sw = sin(wind);
-    p = vec2(p.x * cw - p.y * sw, p.x * sw + p.y * cw);
 
     // the surface normal: the big waves, a fine restless simmer, and rings spreading from popped bubbles
     float e = 0.12;
-    float hx = waveH(vP + vec2(e, 0.0)) - waveH(vP - vec2(e, 0.0));
-    float hz = waveH(vP + vec2(0.0, e)) - waveH(vP - vec2(0.0, e));
+    float hx = waveH(p + vec2(e, 0.0)) - waveH(p - vec2(e, 0.0));
+    float hz = waveH(p + vec2(0.0, e)) - waveH(p - vec2(0.0, e));
     vec3 N = normalize(vec3(-hx / (2.0 * e), 1.0, -hz / (2.0 * e)));
     vec2 q = p * 2.4 + vec2(t * 0.18, -t * 0.12);
     float b0 = fbmL(q);
@@ -203,8 +190,6 @@ const lakeFrag = /* glsl */ `
     foam += uBoil * exp(-boilD * boilD / 70.0) * (0.45 + 0.55 * fbmS(p * 3.0 + t * 0.4));
     foam += smoothstep(${(LAKE_R - 2.4).toFixed(1)}, ${LAKE_R.toFixed(1)}, r) * 0.7;
     foam += ring * 0.5;
-    float spiral = sin(atan(vP.y, vP.x) * 4.0 + rr0 * 0.9 - t * 3.0);
-    foam += uSwirl * smoothstep(0.2, 0.9, spiral) * exp(-rr0 * 0.07) * 0.9;
     col = mix(col, vec3(1.0, 0.93, 0.82), clamp(foam, 0.0, 0.85) * 0.6);
 
     // flecks of scallion, sesame and chili flake, scattered at random
@@ -272,10 +257,9 @@ export class Station {
     this.group.visible = false;
     this.time = 0;
     this.boil = 0;
-    this.swirl = 0; // the whirlpool: full while we fall into the pot, calming once we are in it
     const g = this.group;
     const r = rng(7);
-    this.u = { uTime: { value: 0 }, uBoil: { value: 0 }, uSwirl: { value: 0 }, uBoilC: { value: BOIL_C }, uFog: { value: 0 }, uFogColor: { value: new THREE.Color(0xc9a070) } };
+    this.u = { uTime: { value: 0 }, uBoil: { value: 0 }, uBoilC: { value: BOIL_C }, uFog: { value: 0 }, uFogColor: { value: new THREE.Color(0xc9a070) } };
 
     // ---- the pot: a great brass stockpot, hammered, with a rolled rim, bands and two loop handles
     const brassMaps = hammeredCopperMaps(512, 600);
@@ -567,24 +551,6 @@ export class Station {
     ], { height: 16, rise: 1.4, spread: 1.6, size: 3.0, opacity: 0.09, color: 0xffd9a8, sway: 0.6, grow: 2.0, near: 4.5 });
     this.haze = new Steam([{ x: 0, y: LAKE_Y, z: -6, r: 26, n: 150 }], { height: 9, rise: 0.5, spread: 0.6, size: 9, opacity: 0.05, color: 0xffd2a0, sway: 1.2, grow: 0.8, near: 9 });
     g.add(this.haze.points);
-    // a column of steam boiling up out of the pot, far up into space: you fall through it
-    this.plume = new Steam([{ x: 0, y: LAKE_Y + 2, z: 0, r: 22, n: 380 }], { height: 150, rise: 6, spread: 1.8, size: 14, opacity: 0.06, color: 0xffd6a8, sway: 4, grow: 2.2, near: 10 });
-    g.add(this.plume.points);
-    // a tornado of scallion, chili and sesame turning above the whirlpool
-    {
-      const N = 900;
-      const geo = new THREE.TorusGeometry(0.42, 0.11, 6, 12);
-      geo.rotateX(Math.PI / 2);
-      this.swarm = new THREE.InstancedMesh(geo, std(0x9be36b, { emissive: 0x1f5a12, emissiveIntensity: 0.5 }), N);
-      this.swarmData = [];
-      for (let i = 0; i < N; i++) this.swarmData.push({ a: r() * TAU, y: 2 + Math.pow(r(), 1.4) * 70, w: 0.5 + r() * 0.5, s: 0.7 + r() * 1.2, k: r() });
-      this.swarm.frustumCulled = false;
-      g.add(this.swarm);
-      const geo2 = new THREE.TetrahedronGeometry(0.16);
-      this.swarm2 = new THREE.InstancedMesh(geo2, std(0xd9260b, { emissive: 0x3a0800 }), 500);
-      this.swarm2.frustumCulled = false;
-      g.add(this.swarm2);
-    }
     this.embers = this.makeSprites(160, 16, 26, 0.35, 0xffb25a, 0.8, steamTexture());
     g.add(this.steam.points, this.embers.points);
 
@@ -636,8 +602,6 @@ export class Station {
     this.boil = boil;
     this.u.uTime.value = T;
     this.u.uBoil.value = boil;
-    SWIRL = this.swirl;
-    this.u.uSwirl.value = this.swirl;
     this.lakeLight.intensity = 170 + Math.sin(T * 1.3) * 12;
 
     const dummy = this._d || (this._d = new THREE.Object3D());
@@ -690,34 +654,6 @@ export class Station {
     this.steam.u.uRise.value = 1.4 * (1 + boil * 0.5);
     this.steam.update(T, this.pixelScale ?? 1);
     this.haze.update(T, this.pixelScale ?? 1);
-    this.plume.update(T, this.pixelScale ?? 1);
-    this.plume.u.uOpacity.value = 0.06 * (0.2 + 0.8 * this.swirl);
-    // the tornado: everything circles the eye, closer and faster the lower it is, and sinks as the storm calms
-    const sw = this.swirl;
-    // it only exists while the storm does: as the whirlpool calms the garnish sinks and is gone
-    const alive = ramp(sw, 0.25, 0.7);
-    this.swarm.visible = this.swarm2.visible = alive > 0.01;
-    if (this.swarm.visible) {
-      this.swarmData.forEach((o, i) => {
-        const y = (6 + o.y) * (0.3 + 0.7 * sw);
-        const rad = 5 + y * 0.42 + Math.sin(T * 0.7 + o.k * 9) * 1.2;
-        const ang = o.a + T * o.w * (1.6 - y * 0.012) * (0.4 + 0.6 * sw);
-        dummy.position.set(Math.cos(ang) * rad, LAKE_Y + y + Math.sin(T * 1.3 + o.k * 20) * 0.6, Math.sin(ang) * rad);
-        dummy.rotation.set(o.k * 6 + T * 0.8, ang, 0.3);
-        dummy.scale.setScalar(o.s * alive);
-        dummy.updateMatrix();
-        this.swarm.setMatrixAt(i, dummy.matrix);
-        if (i < 500) {
-          dummy.position.set(Math.cos(ang + 1.3) * (rad * 0.8), LAKE_Y + y * 0.9 + 1, Math.sin(ang + 1.3) * (rad * 0.8));
-          dummy.rotation.set(T + o.k, ang, T * 0.7);
-          dummy.scale.setScalar(o.s * 0.9 * alive);
-          dummy.updateMatrix();
-          this.swarm2.setMatrixAt(i, dummy.matrix);
-        }
-      });
-      this.swarm.instanceMatrix.needsUpdate = true;
-      this.swarm2.instanceMatrix.needsUpdate = true;
-    }
     if (this.ladle.userData.body) this.ladle.userData.body.userData.brothMat.uniforms.uFog.value = this.u.uFog.value;
     for (const s of [this.embers]) {
       const p = s.points.geometry.attributes.position;
